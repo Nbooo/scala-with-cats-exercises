@@ -1,6 +1,16 @@
 trait Printable[A] {
+  self =>
+
   def format: A => String
   def print: A => Unit = a => println(format(a))
+
+  def contramap[B](func: B => A): Printable[B] = {
+    new Printable[B] {
+      def format: B => String = {
+        b => self.format(func(b))
+      }
+    }
+  }
 }
 
 object Printable {
@@ -15,6 +25,10 @@ object PrintableInstances {
 
   implicit val intPrintable: Printable[Int] = new Printable[Int] {
     def format: Int => String = _.toString
+  }
+
+  implicit val boolPrintable: Printable[Boolean] = new Printable[Boolean] {
+    override def format: Boolean => String = x => if (x) "yes" else "no"
   }
 }
 

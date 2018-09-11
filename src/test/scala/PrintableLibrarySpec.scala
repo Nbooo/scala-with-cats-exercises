@@ -1,9 +1,16 @@
 import cats._
-import cats.syntax._
 import cats.implicits._
 import org.scalatest.{Matchers, WordSpec}
+import PrintableInstances._
+import PrintableSyntax._
 
-class PrintableLibrarySpec extends WordSpec with Matchers {
+class PrintableLibrarySpec extends WordSpec with Matchers with TestData {
+
+  private implicit val catPrintable: Printable[Cat] = new Printable[Cat] {
+    override def format: Cat => String =
+      cat => s"${cat.name} is a ${cat.age} years-old ${cat.color} cat."
+  }
+
   "Printable" should {
     "format integers and strings" in {
       import PrintableInstances._
@@ -14,16 +21,14 @@ class PrintableLibrarySpec extends WordSpec with Matchers {
       Printable.format(intValue) shouldBe intValue.toString
     }
 
-    "format a Cat into string correctly" in new PrintableCatTestScope { // xD that's cruel for sure.
+    "format a Cat into string correctly" in { // xD that's cruel for sure.
       val cat: Cat = Cat("Taiva", 2, "black")
       val expected = s"${cat.name} is a ${cat.age} years-old ${cat.color} cat."
 
       Printable.format(cat) shouldBe expected
     }
 
-    "format on an entity may be called via Ops" in new PrintableCatTestScope {
-      import PrintableInstances._
-      import PrintableSyntax._
+    "format on an entity may be called via Ops" in {
 
       val intValue = 123
       intValue.format shouldBe intValue.toString
@@ -46,13 +51,19 @@ class PrintableLibrarySpec extends WordSpec with Matchers {
     }
   }
 
-}
+  "printable instance created via contramap" should {
+    "work for Box" in {
 
-final case class Cat(name: String, age: Int, color: String)
+      implicit def boxPrintable[A](implicit printable: Printable[A]): Printable[Box[A]] = printable.contramap(_.value)
 
-trait PrintableCatTestScope {
-  implicit val catPrintable: Printable[Cat] = new Printable[Cat] {
-    override def format: Cat => String =
-      cat => s"${cat.name} is a ${cat.age} years-old ${cat.color} cat."
+      val stringBox: Box[String] = Box("hello there")
+      val boolBox: Box[Boolean] = Box(false)
+      val intBox: Box[Int] = Box(32)
+
+      stringBox.format shouldBe "hello there"
+      boolBox.format shouldBe "no"
+      intBox.format shouldBe "32"
+    }
   }
+
 }
