@@ -21,4 +21,8 @@ class MonadSpec extends FlatSpec with Matchers {
   "stackSafeFactorial" should "not fail with stackoverflow error" in {
     stackSafeFactorial(100000).value > 1 shouldBe true
   }
+
+  "factorial function via Writer monad" should "return correct result" in {
+    factorialW(10) shouldBe 3628800
+  }
 }
