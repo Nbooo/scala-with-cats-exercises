@@ -23,6 +23,16 @@ class MonadSpec extends FlatSpec with Matchers {
   }
 
   "factorial function via Writer monad" should "return correct result" in {
-    factorialW(10) shouldBe 3628800
+    factorialW(10).value shouldBe 3628800
+  }
+
+  "checkLogin " should "work" in {
+    import HackingReaders._
+    val users = Map(1 -> "dade", 2 -> "kate", 3 -> "margo")
+    val passwds = Map("dade" -> "zerocool", "kate" -> "acidburn", "margo" -> "secret")
+    val db = Db(users, passwds)
+
+    checkLogin(1, "zerocool").run(db) shouldBe true
+    checkLogin(3, "whatever").run(db) shouldBe false
   }
 }
